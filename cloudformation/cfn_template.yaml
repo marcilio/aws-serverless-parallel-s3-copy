@@ -1,0 +1,93 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates a Step Functions state machine to copy S3 files from a source bucket/path to a target bucket/path based on file types (eg, mp4, jpg)
+Transform: 'AWS::Serverless-2016-10-31'
+Parameters:
+  ProjectName:
+    Description: "Project Name"
+    Type: String
+    Default: s3servcopy
+  EnvType:
+    Description: "Environment type (eg, dev, qa, prod)"
+    Type: String
+    Default: dev
+  SourceS3Bucket:
+    Description: "S3 Bucket where files will be copied from"
+    Type: String
+  TargetS3Bucket:
+    Description: "S3 Bucket where files will be copied to"
+    Type: String
+  NumCopyLambdaWorkers:
+    Description: "Number of S3 Copy Lambda workers that will be used in parallel"
+    Type: Number
+    Default: 3
+  MaxPayloadSizePerLambdaExecutionInMB:
+    Description: "Maximum size of the payload (sum of all file sizes) in MB a Lambda function will be able to copy in a single execution (remember Lambda has a 5-min max execution time)"
+    Type: Number
+    Default: 1024 # 1GB - within regions 10GB should be okay
+Resources:
+  S3FileCopyOrchestratorLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Lambda that orchestrates the S3 copy work (splits files into manageable payloads)
+      FunctionName: !Sub "${EnvType}-${ProjectName}-s3-file-copy-orchestrator"
+      Handler: s3_copy_orchestrator.handler
+      Runtime: python3.6 
+      CodeUri: ../lambdas/
+      MemorySize: 512
+      Timeout: 30
+      Policies:
+        - AWSLambdaExecute
+        - S3ReadPolicy:
+            BucketName: !Ref SourceS3Bucket
+        - S3CrudPolicy:
+            BucketName: !Ref TargetS3Bucket
+      Environment:
+        Variables:
+            NumCopyLambdaWorkers: !Ref NumCopyLambdaWorkers
+            MaxPayloadSizePerLambdaExecutionInMB: !Ref MaxPayloadSizePerLambdaExecutionInMB
+
+  StepFunctionsStateMachineRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - !Sub "states.${AWS::Region}.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: "lambda"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+  StepFunctionsStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub "${EnvType}-${ProjectName}-state-machine"
+      RoleArn: !GetAtt StepFunctionsStateMachineRole.Arn
+      DefinitionString:
+        !Sub |
+          {
+            "Comment": "S3 Serverless Parallel S3 Copy",
+            "StartAt": "Orchestrate S3 Copy Work",
+            "States": {
+                "Orchestrate S3 Copy Work": {
+                    "Type": "Task",
+                    "Resource": "${S3FileCopyOrchestratorLambda.Arn}",
+                    "ResultPath": "$.work_config",
+                    "End": true
+                }
+            }
+          }
