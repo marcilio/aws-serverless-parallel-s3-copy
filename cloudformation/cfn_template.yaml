@@ -47,6 +47,23 @@ Resources:
             NumCopyLambdaWorkers: !Ref NumCopyLambdaWorkers
             MaxPayloadSizePerLambdaExecutionInMB: !Ref MaxPayloadSizePerLambdaExecutionInMB
 
+  S3FileCopyWorkerLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Lambda that copies S3 files from a source to a destination bucket/path
+      FunctionName: !Sub "${EnvType}-${ProjectName}-s3-file-copy-worker"
+      Handler: s3_copy_worker.handler
+      Runtime: python3.6 
+      CodeUri: ../lambdas/
+      MemorySize: 512
+      Timeout: 30
+      Policies:
+        - AWSLambdaExecute
+        - S3ReadPolicy:
+            BucketName: !Ref SourceS3Bucket
+        - S3CrudPolicy:
+            BucketName: !Ref TargetS3Bucket
+
   StepFunctionsStateMachineRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -80,14 +97,50 @@ Resources:
       DefinitionString:
         !Sub |
           {
-            "Comment": "S3 Serverless Parallel S3 Copy",
-            "StartAt": "Orchestrate S3 Copy Work",
-            "States": {
-                "Orchestrate S3 Copy Work": {
-                    "Type": "Task",
-                    "Resource": "${S3FileCopyOrchestratorLambda.Arn}",
-                    "ResultPath": "$.work_config",
-                    "End": true
-                }
-            }
+              "Comment": "S3 Serverless Parallel S3 Copy",
+              "StartAt": "Orchestrate S3 Copy Work",
+              "States":
+              {
+                  "Orchestrate S3 Copy Work":
+                  {
+                      "Type": "Task",
+                      "Resource": "${S3FileCopyOrchestratorLambda.Arn}",
+                      "ResultPath": "$.work_config",
+                      "Next": "Copy S3 Files"
+                  },
+                  "Copy S3 Files":
+                  {
+                      "Type": "Parallel",
+                      "End": true,
+                      "Branches":
+                      [
+                          {
+                              "StartAt": "Copy Worker #1",
+                              "States":
+                              {
+                                  "Copy Worker #1":
+                                  {
+                                    "Type": "Task",
+                                    "Resource": "${S3FileCopyWorkerLambda.Arn}",
+                                    "InputPath": "$.work_config.s3_work_1",
+                                    "End": true
+                                  }
+                              }
+                          },
+                          {
+                              "StartAt": "Copy Worker #2",
+                              "States":
+                              {
+                                  "Copy Worker #2":
+                                  {
+                                    "Type": "Task",
+                                    "Resource": "${S3FileCopyWorkerLambda.Arn}",
+                                    "InputPath": "$.work_config.s3_work_2",
+                                    "End": true
+                                  }
+                              }
+                          }
+                      ]
+                  }
+              }
           }

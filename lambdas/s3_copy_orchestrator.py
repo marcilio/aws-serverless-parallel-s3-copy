@@ -4,9 +4,6 @@
 # multiple Lambda functions. The grouping allows Lambda functions to work on a
 # reasonably-sized payload that can be processed within Lambda's max execution time
 # of 5 min.
-#
-# For details on the MPP, please check the link below:
-# ->  https://corusent.atlassian.net/wiki/spaces/CVMS/pages/533823515/VMS+Tech+Documents+and+Diagrams
 # ------------------------------------------------------------------------------
 
 import boto3
@@ -88,7 +85,7 @@ class S3CopyOrchestrator:
             if (chd1_idx < heap_size):
                 min_chd_idx = chd1_idx
                 # find out the min child node
-                if (chd2_idx < heap_size and works_min_heap[chd2_idx].cur_payload_size < works_min_heap[chd1_idx].cur_payload_size):
+                if (chd2_idx < heap_size and works_min_heap[chd2_idx].cur_work_size < works_min_heap[chd1_idx].cur_work_size):
                     min_chd_idx = chd2_idx
                 # check if child node needs to be swapped with parent
                 if (works_min_heap[min_chd_idx].cur_work_size < works_min_heap[idx].cur_work_size):
@@ -103,7 +100,7 @@ class S3CopyOrchestrator:
 
     def split_work(self, s3_files_list, num_available_works, max_paylod_size_per_work_in_mb):
         assert s3_files_list != None and num_available_works > 0 and max_paylod_size_per_work_in_mb > 0
-        works_min_heap = [S3CopyWork('s3-copy-work-{}'.format(index), max_paylod_size_per_work_in_mb)
+        works_min_heap = [S3CopyWork('s3_copy_work_{}'.format(index), max_paylod_size_per_work_in_mb)
                             for index in range(1, num_available_works+1)]
         if len(s3_files_list) > 0:
             # distributes payload evenly (greedy) across available works
@@ -169,7 +166,7 @@ def s3_work_to_json(s3_work_list):
             work_payloads.append(payload_dict)
         work_dict['num_payloads'] = len(work_payloads)
         work_dict['payloads'] = work_payloads
-        work_set_dict['s3-work-'+str(work_idx+1)] = work_dict
+        work_set_dict['s3_work_'+str(work_idx+1)] = work_dict
     return work_set_dict
 
 # Sample Lambda Input
@@ -181,7 +178,7 @@ def s3_work_to_json(s3_work_list):
 #         },
 #         "target_s3_config": [
 #             {
-#                 "file_types" : ["mp4", "jpg"],
+#                 "file_types" : ["mp4", "jpg", "zip"],
 #                 "s3_bucket": "aws-s3-serverless-parallel-copy",
 #                 "s3_path": "target/"
 #             }
@@ -219,34 +216,11 @@ def handler(event, context):
                     elif file_extension != 'mrss':
                         logger.warning('S3 file: \'{}\' from S3 bucket: \'{}\'is not referenced by the S3 input configuration and is being ignored'.format(src_s3_filename, src_s3_bucket_name))
         # This is the S3 file move orchestrator that will split the move work evently among available workers (Lambda functions)
-        num_lambda_workers = os.environ['NumCopyLambdaWorkers'] if 'NumCopyLambdaWorkers' in os.environ != None else 2 # default: 2 workers
-        max_payload_size_per_lambda_execution = os.environ['MaxPayloadSizePerLambdaExecutionInMB'] if 'MaxPayloadSizePerLambdaExecutionInMB' in os.environ != None else 1024 # default: 1GB
+        num_lambda_workers = int(os.environ['NumCopyLambdaWorkers']) if 'NumCopyLambdaWorkers' in os.environ != None else 2 # default: 2 workers
+        max_payload_size_per_lambda_execution = int(os.environ['MaxPayloadSizePerLambdaExecutionInMB']) if 'MaxPayloadSizePerLambdaExecutionInMB' in os.environ != None else 1024 # default: 1GB
         s3_file_move_orchestrator = S3CopyOrchestrator()
         s3_work_list = s3_file_move_orchestrator.split_work(full_list_of_files, num_lambda_workers, max_payload_size_per_lambda_execution)
         return s3_work_to_json(s3_work_list)
     except Exception as e:
         logger.error(str(e))
         raise e
-
-if __name__ == '__main__':
-    h = handler(
-        {
-            "s3_copy_config": {
-                "source_s3_config": {
-                    "s3_bucket": "aws-s3-serverless-parallel-copy",
-                    "s3_path": "source/"
-                },
-                "target_s3_config": [
-                    {
-                        "file_types" : ["zip", "jpg"],
-                        "s3_bucket": "aws-s3-serverless-parallel-copy",
-                        "s3_path": "target/"
-                    }
-                ]
-            }
-        },
-        {
-            'function_name', 's3copy_orchestrator'
-        }
-    )
-    print(h)

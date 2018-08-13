@@ -6,8 +6,8 @@ export env_type="dev"
 # Python virtual environment location for packaging
 export virtual_env_location=`pipenv --venv`
 
-export num_copy_lambda_workers=3
-export max_payload_size_per_lambda_execution_in_mb=1024
+export num_copy_lambda_workers=2
+export max_payload_size_per_lambda_execution_in_mb=800
 
 # S3 bucket where file will be copied from
 export source_s3_bucket="aws-s3-serverless-parallel-copy"
