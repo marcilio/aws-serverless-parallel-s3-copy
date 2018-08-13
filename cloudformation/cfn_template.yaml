@@ -35,7 +35,7 @@ Resources:
       Runtime: python3.6 
       CodeUri: ../lambdas/
       MemorySize: 512
-      Timeout: 30
+      Timeout: 120
       Policies:
         - AWSLambdaExecute
         - S3ReadPolicy:
@@ -53,10 +53,10 @@ Resources:
       Description: Lambda that copies S3 files from a source to a destination bucket/path
       FunctionName: !Sub "${EnvType}-${ProjectName}-s3-file-copy-worker"
       Handler: s3_copy_worker.handler
-      Runtime: python3.6 
+      Runtime: python3.6
       CodeUri: ../lambdas/
       MemorySize: 512
-      Timeout: 30
+      Timeout: 300
       Policies:
         - AWSLambdaExecute
         - S3ReadPolicy:
@@ -115,29 +115,57 @@ Resources:
                       "Branches":
                       [
                           {
-                              "StartAt": "Copy Worker #1",
+                              "StartAt": "S3 Copy Worker #1",
                               "States":
                               {
-                                  "Copy Worker #1":
+                                  "S3 Copy Worker #1":
                                   {
                                     "Type": "Task",
                                     "Resource": "${S3FileCopyWorkerLambda.Arn}",
-                                    "InputPath": "$.work_config.s3_work_1",
-                                    "End": true
+                                    "InputPath": "$..s3_work_1",
+                                    "Next": "More Payloads for Worker #1?"
+                                  },
+                                  "More Payloads for Worker #1?": {
+                                    "Type": "Choice",
+                                    "Choices": [
+                                        {
+                                          "Variable": "$.status",
+                                          "StringEquals": "processing",
+                                          "Next": "S3 Copy Worker #1"
+                                        }
+                                    ],
+                                    "Default": "Worker #1 Done"
+                                  },
+                                  "Worker #1 Done": {
+                                    "Type": "Succeed"
                                   }
                               }
                           },
                           {
-                              "StartAt": "Copy Worker #2",
+                              "StartAt": "S3 Copy Worker #2",
                               "States":
                               {
-                                  "Copy Worker #2":
+                                  "S3 Copy Worker #2":
                                   {
                                     "Type": "Task",
                                     "Resource": "${S3FileCopyWorkerLambda.Arn}",
-                                    "InputPath": "$.work_config.s3_work_2",
-                                    "End": true
-                                  }
+                                    "InputPath": "$..s3_work_2",
+                                    "Next": "More Payloads for Worker #2?"
+                                  },
+                                  "More Payloads for Worker #2?": {
+                                    "Type": "Choice",
+                                    "Choices": [
+                                        {
+                                          "Variable": "$.status",
+                                          "StringEquals": "processing",
+                                          "Next": "S3 Copy Worker #2"
+                                        }
+                                    ],
+                                    "Default": "Worker #2 Done"
+                                  },
+                                  "Worker #2 Done": {
+                                    "Type": "Succeed"
+                                  }    
                               }
                           }
                       ]

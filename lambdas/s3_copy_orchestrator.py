@@ -144,7 +144,9 @@ class S3CopyFileTypeInfo:
 def s3_work_to_json(s3_work_list):
     work_set_dict = {}
     for work_idx, work in enumerate(s3_work_list):
+        work_id = 's3_work_'+str(work_idx+1)
         work_dict = {
+            'work_id': work_id,
             'cur_payload': 0,
             'work_size_in_mb': work.cur_work_size
         }
@@ -166,7 +168,7 @@ def s3_work_to_json(s3_work_list):
             work_payloads.append(payload_dict)
         work_dict['num_payloads'] = len(work_payloads)
         work_dict['payloads'] = work_payloads
-        work_set_dict['s3_work_'+str(work_idx+1)] = work_dict
+        work_set_dict[work_id] = work_dict
     return work_set_dict
 
 # Sample Lambda Input

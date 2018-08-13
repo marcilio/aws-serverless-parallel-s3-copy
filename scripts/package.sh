@@ -5,7 +5,6 @@
 # - Make sure AWS_PROFILE env variable is set properly
 #======================================================================
 
-# Sample invoke using pipenv:
 # ./package.sh dev
 
 set -e
@@ -20,6 +19,10 @@ function error() {
 env_type=$1
 
 . "./scripts/${env_type}-env.sh"
+
+if [ -z "$virtual_env_location" ]; then
+    virtual_env_location=`pipenv --venv`
+fi
 
 pack_root_dir="/tmp/${app_name}"
 pack_dist_dir="${pack_root_dir}/dist"
