@@ -65,7 +65,7 @@ export AWS_PROFILE=[your AWS profile or 'Default']
 Deploy the solution
 
 ```bash
-./scripts/deploy.sh dev . # this will load the values defined in your dev-env.sh and deploy the solution
+./scripts/deploy.sh dev # this will load the values defined in your dev-env.sh and deploy the solution
 ```
 
 Take a look in your AWS account and notice the resources created: AWS Step Functions state machine, AWS Lambda functions, IAM roles, etc. 
@@ -105,13 +105,18 @@ Enter the State Machine input, for example:
 }
 ```
 
+Then Hit, "Start Execution" again.
+
 This will copy ```mp4``` files from ```my-source-s3-bucket/source``` into ```my-target-s3-bucket/mp4``` and ```jpg``` and ```png``` files into ```my-target-s3-bucket/images/``` location.
 
 S3 paths can be empty (eg, ```"s3_path": ""```).
 
 ## Limitations
 
-* Solution accepts a single S3 bucket and path as source
-* Soluton only supports 'file type' filtering for now. That is, the Lambdas will look for file types and copy them to designated locations.
+* Single source S3 bucket supported
+* Only file type filtering supported for now. That is, the Lambdas will look for file types and copy them to designated locations.
 
-Cool, eh? Feel free to contribute!
+
+Cool, eh? Who doesn't like Serverless? 
+
+Feel free to contribute!
