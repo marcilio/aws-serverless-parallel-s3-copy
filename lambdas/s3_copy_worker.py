@@ -55,7 +55,7 @@ def handler(event, context):
         # grab input values
         work = event[0]
         payload = work['payloads'][work['cur_payload']]
-        logger.info('Processing payload: {}'.format(payload))
+        logger.info('S3 Copy Worker \'{}\' is processing payload: {}'.format(work['work_id'], payload))
 
         # Process the next work payload
         start_time = time.time()
