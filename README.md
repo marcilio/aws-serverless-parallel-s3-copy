@@ -8,7 +8,7 @@ The solution is ideal in a scenario where a very large amount of relatively larg
 
 The Serverless S3 copy architecture is depicted below.
 
-
+![Alt text](docs/serverless-parallel-s3-copy.png?raw=true "Serverless Parallel S3 Copy")
 
 The number of workers is configurable as well as the payload size that each worker Lambda can handle per execution. For example, same-region copies (eg, us-east-1 to us-east-1) payloads of up to ~15GB were successfully handled per Lambda execution (us-east-1). For cross-region copies the payload must be lowered, sometimes significantly (eg, 1GB or less) depending on the source and target regions. 
 
