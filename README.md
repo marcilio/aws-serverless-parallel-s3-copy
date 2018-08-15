@@ -31,6 +31,10 @@ Before you deploy the solution make sure you have the requirements.
 Edit the provided ```dev-env.sh``` configuration script and update the values for the following variables to reflect your own environment. If you have multiple accounts, just copy/paste this file and rename it, eg, dev-env.sh, uat-env.sh, prod-env.sh.
 
 ```bash
+
+# Environment name (eg, dev, qa, prod)
+export env_type="dev"
+
 # your python virtual environment location
 export virtual_env_location=`pipenv --venv`
 
@@ -38,7 +42,7 @@ export virtual_env_location=`pipenv --venv`
 export num_copy_lambda_workers=2
 
 # Maximum payload size in MB that can be handled by a single Lambda worker execution (think in terms of how much can be copied by Lambda given your use case, eg, same-region, cross-region). For reference: Same-region => ~10-15GB, Cross-region: 1GB?
-export max_payload_size_per_lambda_execution_in_mb=800
+export max_payload_size_per_lambda_execution_in_mb=1024
 
 # S3 bucket where file will be copied from (this is to give Lambdas permission access to the bucket)
 export source_s3_bucket="aws-s3-serverless-parallel-copy"
@@ -75,7 +79,6 @@ Your state machine is named ```dev-s3servcopy-state-machine``` (for dev environm
 Enter the State Machine input, for example:
 
 ```json
-
   "s3_copy_config": {
     "source_s3_config": {
       "s3_bucket": "my-source-s3-bucket",
@@ -103,6 +106,8 @@ Enter the State Machine input, for example:
 ```
 
 This will copy ```mp4``` files from ```my-source-s3-bucket/source``` into ```my-target-s3-bucket/mp4``` and ```jpg``` and ```png``` files into ```my-target-s3-bucket/images/``` location.
+
+S3 paths can be empty (eg, ```"s3_path": ""```).
 
 ## Limitations
 
