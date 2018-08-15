@@ -1,6 +1,6 @@
 # Intro
 
-This project illustrates how to build a (Serverless solution)[https://aws.amazon.com/serverless/] to copy a large number of files from an S3 location to another. The project leverages (AWS Step Function)[https://aws.amazon.com/step-functions/] state machines to parallelize work while serializing the copy of large payloads per Lambda execution to address Lambda's running time contraints. 
+This project illustrates how to build a [Serverless solution](https://aws.amazon.com/serverless/) to copy a large number of files from an S3 location to another. The project leverages [AWS Step Function](https://aws.amazon.com/step-functions/) state machines to parallelize work while serializing the copy of large payloads per Lambda execution to address Lambda's running time contraints. 
 
 The solution is ideal in a scenario where a very large amount of relatively large files (up to 10-15GB if within same AWS region) from one S3 location to another. The solution was not designed to copy very large individual files (eg, 100GB) though.
 
@@ -19,9 +19,9 @@ Before you deploy the solution make sure you have the requirements.
 
 ## Requirements
 
-* (Python 3.6)[https://www.python.org/downloads/]
-* (Latest AWS CLI)[https://aws.amazon.com/cli/] if you plan to invoke the state machine via the CLI
-* (Pipenv)[https://github.com/pypa/pipenv] not required by probably a good idea (otherwise just use 'pip' and requirements.txt)
+* [Python 3.6](https://www.python.org/downloads/)
+* [Latest AWS CLI](https://aws.amazon.com/cli/) if you plan to invoke the state machine via the CLI
+* [Pipenv](https://github.com/pypa/pipenv) not required by probably a good idea (otherwise just use 'pip' and requirements.txt)
 * An AWS account where you have permissions to create/configure S3 buckets
 * S3 buckets (source and targets) for the copy
 
