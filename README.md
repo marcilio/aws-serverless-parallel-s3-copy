@@ -90,7 +90,7 @@ Enter the State Machine input, for example:
           "mp4"
         ],
         "s3_bucket": "my-target-s3-bucket",
-        "s3_path": "mp4/"
+        "s3_path": "videos/"
       },
       {
         "file_types": [
@@ -107,7 +107,7 @@ Enter the State Machine input, for example:
 
 Then Hit, "Start Execution" again.
 
-This will copy ```mp4``` files from ```my-source-s3-bucket/source``` into ```my-target-s3-bucket/mp4``` and ```jpg``` and ```png``` files into ```my-target-s3-bucket/images/``` location.
+This will copy ```mp4``` files from ```my-source-s3-bucket/source``` into ```my-target-s3-bucket/videos/``` and ```jpg``` and ```png``` files into ```my-target-s3-bucket/images/``` location.
 
 S3 paths can be empty (eg, ```"s3_path": ""```).
 
