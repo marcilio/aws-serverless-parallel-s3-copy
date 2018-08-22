@@ -17,6 +17,10 @@ Parameters:
   TargetS3Bucket:
     Description: "S3 Bucket where files will be copied to"
     Type: String
+  S3OperationType:
+    Description: "S3 operation type, either 'move-files' or 'copy-files'"
+    Type: String
+    Default: "move-files"
   NumCopyLambdaWorkers:
     Description: "Number of S3 Copy Lambda workers that will be used in parallel"
     Type: Number
@@ -63,6 +67,9 @@ Resources:
             BucketName: !Ref SourceS3Bucket
         - S3CrudPolicy:
             BucketName: !Ref TargetS3Bucket
+      Environment:
+        Variables:
+            S3OperationType: !Ref S3OperationType
 
   StepFunctionsStateMachineRole:
     Type: "AWS::IAM::Role"

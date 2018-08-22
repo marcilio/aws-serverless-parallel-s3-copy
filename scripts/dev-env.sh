@@ -8,6 +8,9 @@ if [ -z "$virtual_env_location" ]; then
     virtual_env_location=`pipenv --venv`
 fi
 
+# S3 operation type: "move-files" or "copy-files"
+export s3_operation_type="move-files"
+
 # Number of Lambda copy workers you want to use to parallelize the S3 
 # copy work. You *must* edit the cloudformation template cfn_template.yaml 
 # to manually add or remove workers to/from the Step Functions. 
