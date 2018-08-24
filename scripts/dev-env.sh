@@ -15,7 +15,7 @@ export s3_operation_type="move-files"
 # copy work. You *must* edit the cloudformation template cfn_template.yaml 
 # to manually add or remove workers to/from the Step Functions. 
 # I know, this is sad. Troposphere to the rescue? 
-export num_copy_lambda_workers=2
+export num_copy_lambda_workers=3
 
 # Maximum payload size in MB that can be handled by a single Lambda worker 
 # execution (think in terms of how much can be copied by Lambda given your 

@@ -32,6 +32,12 @@ mkdir -p $pack_dist_dir
 cp -R . $pack_dist_dir/
 cp -R "${virtual_env_location}/lib/python3.6/site-packages/" "${pack_dist_dir}/lambdas"
 
+# resolve jinja2 template into sam cfn template
+( export cfn_template_dir="${pack_dist_dir}/cloudformation/" &&
+  export input_jinja2_file="cfn_template.jinja2" &&
+  export output_cfn_template="${pack_dist_dir}/cloudformation/${cfn_template}" &&
+  python scripts/gen_cfn_template.py )
+
 echo "Creating Lambda package under '${pack_dist_dir}' and uploading it to s3://${lambda_package_s3_bucket}"
 (cd $pack_dist_dir \
  && aws cloudformation package \

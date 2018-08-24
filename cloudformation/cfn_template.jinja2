@@ -121,60 +121,35 @@ Resources:
                       "End": true,
                       "Branches":
                       [
+                        {% for worker in workers %}
                           {
-                              "StartAt": "S3 Copy Worker #1",
+                              "StartAt": "S3 Copy Worker #{{ loop.index }}",
                               "States":
                               {
-                                  "S3 Copy Worker #1":
+                                  "S3 Copy Worker #{{ loop.index }}":
                                   {
                                     "Type": "Task",
                                     "Resource": "${S3FileCopyWorkerLambda.Arn}",
-                                    "InputPath": "$..s3_work_1",
-                                    "Next": "More Payloads for Worker #1?"
+                                    "InputPath": "$..s3_work_{{ loop.index }}",
+                                    "Next": "More Payloads for Worker #{{ loop.index }}?"
                                   },
-                                  "More Payloads for Worker #1?": {
+                                  "More Payloads for Worker #{{ loop.index }}?": {
                                     "Type": "Choice",
                                     "Choices": [
                                         {
                                           "Variable": "$.status",
                                           "StringEquals": "processing",
-                                          "Next": "S3 Copy Worker #1"
+                                          "Next": "S3 Copy Worker #{{ loop.index }}"
                                         }
                                     ],
                                     "Default": "Worker #1 Done"
                                   },
-                                  "Worker #1 Done": {
+                                  "Worker #{{ loop.index }} Done": {
                                     "Type": "Succeed"
                                   }
                               }
-                          },
-                          {
-                              "StartAt": "S3 Copy Worker #2",
-                              "States":
-                              {
-                                  "S3 Copy Worker #2":
-                                  {
-                                    "Type": "Task",
-                                    "Resource": "${S3FileCopyWorkerLambda.Arn}",
-                                    "InputPath": "$..s3_work_2",
-                                    "Next": "More Payloads for Worker #2?"
-                                  },
-                                  "More Payloads for Worker #2?": {
-                                    "Type": "Choice",
-                                    "Choices": [
-                                        {
-                                          "Variable": "$.status",
-                                          "StringEquals": "processing",
-                                          "Next": "S3 Copy Worker #2"
-                                        }
-                                    ],
-                                    "Default": "Worker #2 Done"
-                                  },
-                                  "Worker #2 Done": {
-                                    "Type": "Succeed"
-                                  }    
-                              }
                           }
+                          {% if not loop.last %},{% endif %}{% endfor %}
                       ]
                   }
               }
