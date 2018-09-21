@@ -225,4 +225,4 @@ def handler(event, context):
         return s3_work_to_json(s3_work_list)
     except Exception as e:
         logger.error(str(e))
-        raise e
+        raise

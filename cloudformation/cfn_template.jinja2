@@ -142,7 +142,7 @@ Resources:
                                           "Next": "S3 Copy Worker #{{ loop.index }}"
                                         }
                                     ],
-                                    "Default": "Worker #1 Done"
+                                    "Default": "Worker #{{ loop.index }} Done"
                                   },
                                   "Worker #{{ loop.index }} Done": {
                                     "Type": "Succeed"

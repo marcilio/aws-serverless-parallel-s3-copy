@@ -147,4 +147,4 @@ def handler(event, context):
 
     except Exception as e:
         logger.error(str(e))
-        raise e
+        raise
